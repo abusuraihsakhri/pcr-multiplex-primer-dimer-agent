@@ -8,3 +8,14 @@ output.csv
 dist/
 build/
 *.egg-info/
+
+# Environment & secrets
+.env
+.env.local
+*.key
+*.pem
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store

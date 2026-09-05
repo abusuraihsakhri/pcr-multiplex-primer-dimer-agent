@@ -21,10 +21,13 @@ class SystemSupervisor:
         self.dossier_registry: Dict[str, ConsensusDossier] = {}
 
     def process_task(self, payload: SystemTaskPayload, actor: str = "SystemSupervisor") -> ConsensusDossier:
-        # Zero-PHI outbound validation
+        # Zero-PHI outbound validation on all user-supplied string fields
         PHIGuard.assert_no_phi(payload.task_id)
         PHIGuard.assert_no_phi(payload.target_identifier)
         PHIGuard.assert_no_phi(payload.status_descriptor)
+        for key, value in (payload.attributes or {}).items():
+            if isinstance(value, str):
+                PHIGuard.assert_no_phi(value)
 
         # Multi-worker evaluations
         all_alerts: List[AgentAlert] = []

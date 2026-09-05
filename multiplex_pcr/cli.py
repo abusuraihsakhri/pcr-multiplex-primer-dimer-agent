@@ -5,6 +5,7 @@ import argparse
 import csv
 import json
 import sys
+from pathlib import Path
 from .models import FrontierPayload
 from .agents import MultiplexPCRCoordinator
 
@@ -69,35 +70,64 @@ def main(argv=None):
         return 0
 
     if args.command == "batch":
-        with open(args.input, mode="r", encoding="utf-8-sig") as f:
+        # Path traversal protection: resolve and validate paths
+        input_path = Path(args.input).resolve()
+        output_path = Path(args.output).resolve()
+        cwd = Path.cwd().resolve()
+
+        if not input_path.is_file():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            return 1
+        if not str(input_path).startswith(str(cwd)):
+            print("Error: Input path must be within the working directory.", file=sys.stderr)
+            return 1
+        if not str(output_path).startswith(str(cwd)):
+            print("Error: Output path must be within the working directory.", file=sys.stderr)
+            return 1
+
+        with open(input_path, mode="r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
 
+        if not rows:
+            print(f"Warning: No data rows found in {args.input}")
+            return 0
+
         out_fields = fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]
         out_rows = []
-        for r in rows:
-            payload = FrontierPayload(
-                task_id=r.get("task_id", "TASK-01"),
-                target_identifier=r.get("target_identifier", "TARGET-01"),
-                primary_metric=float(r.get("primary_metric", 15.0)),
-                secondary_metric=float(r.get("secondary_metric", 5.0)),
-                status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
-            )
-            dossier = coordinator.process(payload)
-            row_dict = dict(r)
-            row_dict["overall_status"] = dossier["overall_status"]
-            row_dict["total_alerts"] = dossier["total_alerts"]
-            row_dict["critical_count"] = dossier["critical_count"]
-            row_dict["consensus_summary"] = dossier["consensus_summary"]
-            out_rows.append(row_dict)
+        errors = []
+        for idx, r in enumerate(rows, start=1):
+            try:
+                primary_raw = r.get("primary_metric", "15.0")
+                secondary_raw = r.get("secondary_metric", "5.0")
+                payload = FrontierPayload(
+                    task_id=str(r.get("task_id", f"TASK-{idx:03d}")),
+                    target_identifier=str(r.get("target_identifier", f"TARGET-{idx:03d}")),
+                    primary_metric=float(primary_raw),
+                    secondary_metric=float(secondary_raw),
+                    status_descriptor=str(r.get("status_descriptor", "NOMINAL")),
+                    is_critical_flag=str(r.get("is_critical_flag", "")).lower() in ("true", "1", "yes"),
+                )
+                dossier = coordinator.process(payload)
+                row_dict = dict(r)
+                row_dict["overall_status"] = dossier["overall_status"]
+                row_dict["total_alerts"] = dossier["total_alerts"]
+                row_dict["critical_count"] = dossier["critical_count"]
+                row_dict["consensus_summary"] = dossier["consensus_summary"]
+                out_rows.append(row_dict)
+            except (ValueError, TypeError) as e:
+                errors.append(f"Row {idx}: Invalid numeric data - {e}")
 
-        with open(args.output, mode="w", encoding="utf-8", newline="") as f:
+        if errors:
+            for err in errors:
+                print(f"Warning: {err}", file=sys.stderr)
+
+        with open(output_path, mode="w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=out_fields)
             writer.writeheader()
             writer.writerows(out_rows)
-        print(f"Processed {len(out_rows)} records -> {args.output}")
+        print(f"Processed {len(out_rows)} records -> {args.output} ({len(errors)} skipped)")
         return 0
 
     if args.command == "serve":

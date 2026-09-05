@@ -3,12 +3,13 @@ Automated Pytest Test Suite for Pcr Multiplex Primer Dimer Agent.
 Domain: Clinical & Biomedical AI
 Standard: CAP / CLSI / ISO Standards
 """
+import os
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from agents.base import PHIGuard, AuditLogger, SecurityException
+from agents.base import PHIGuard, AuditLogger, AuditTrail, SecurityException
 from agents.models import SystemTaskPayload, UrgencyLevel, SystemIntegrityStatus
 from agents.workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from agents.supervisor import SystemSupervisor
@@ -21,6 +22,45 @@ def test_phi_guard_enforcement():
 
     # Clean text passes
     PHIGuard.assert_no_phi("Analytical assay specimen KEY-001 optimal")
+
+
+def test_phi_guard_email_pattern():
+    """Verify email addresses are detected as PHI."""
+    with pytest.raises(SecurityException):
+        PHIGuard.assert_no_phi("Contact patient at john.doe@hospital.org for results")
+
+    # Non-email text passes
+    PHIGuard.assert_no_phi("Specimen KEY-001 processed successfully")
+
+
+def test_phi_guard_in_attributes():
+    """Verify PHI in attributes dict is caught by supervisor."""
+    supervisor = SystemSupervisor(model_provider="mock")
+    payload = SystemTaskPayload(
+        task_id="T-PHI-01",
+        target_identifier="KEY-01",
+        primary_metric=10.0,
+        attributes={"note": "Patient MRN-12345678 tested positive"}
+    )
+    with pytest.raises(SecurityException):
+        supervisor.process_task(payload)
+
+
+def test_audit_trail_requires_secret_key():
+    """Verify AuditTrail raises error when no secret key is provided."""
+    original = os.environ.pop("AUDIT_SECRET_KEY", None)
+    try:
+        with pytest.raises(RuntimeError, match="AUDIT_SECRET_KEY"):
+            AuditTrail()
+    finally:
+        if original is not None:
+            os.environ["AUDIT_SECRET_KEY"] = original
+
+
+def test_audit_trail_rejects_short_key():
+    """Verify AuditTrail rejects short secret keys."""
+    with pytest.raises(ValueError, match="at least 16 characters"):
+        AuditTrail(secret_key="short")
 
 
 def test_specialized_workers():
