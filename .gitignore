@@ -19,3 +19,10 @@ build/
 .vscode/
 .idea/
 .DS_Store
+
+.venv/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+node_modules/
