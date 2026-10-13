@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pcr-multiplex-primer-dimer-engine"
+name = "pcr-multiplex-primer-dimer-agent"
 version = "2.0.0"
 description = "MultiplexPCR-Designer: Primer Dimer, Hairpin & DeltaG Annealing Matrix Engine"
 readme = "README.md"
@@ -17,11 +17,22 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 requires-python = ">=3.9"
-dependencies = []
+dependencies = ["pydantic>=2.0,<3"]
+
+[project.optional-dependencies]
+server = ["fastapi>=0.110,<1", "uvicorn>=0.30,<1"]
+test = ["pytest>=8,<10", "httpx>=0.27,<1"]
 
 [project.scripts]
+pcr-multiplex-primer-dimer-agent = "cli:main"
 pcr-multiplex-primer-dimer-engine = "multiplex_pcr.cli:main"
 
+[tool.setuptools]
+py-modules = ["cli", "enrichment", "simulator", "multiplex_pcr_app"]
+
+[tool.setuptools.packages.find]
+include = ["agents", "agents.*", "multiplex_pcr", "multiplex_pcr.*"]
+
 [project.urls]
-Homepage = "https://github.com/abusuraihsakhri/pcr-multiplex-primer-dimer-engine"
-Repository = "https://github.com/abusuraihsakhri/pcr-multiplex-primer-dimer-engine.git"
+Homepage = "https://github.com/abusuraihsakhri/pcr-multiplex-primer-dimer-agent"
+Repository = "https://github.com/abusuraihsakhri/pcr-multiplex-primer-dimer-agent.git"
