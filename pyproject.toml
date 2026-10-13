@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pcr-multiplex-primer-dimer-agent"
 version = "2.0.0"
-description = "MultiplexPCR-Designer: Primer Dimer, Hairpin & DeltaG Annealing Matrix Engine"
+description = "Heuristic PCR primer complementarity screen with legacy metric audit"
 readme = "README.md"
 authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
 license = { text = "MIT" }
@@ -16,7 +16,7 @@ classifiers = [
     "Topic :: Security/Cryptography",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["pydantic>=2.0,<3"]
 
 [project.optional-dependencies]
