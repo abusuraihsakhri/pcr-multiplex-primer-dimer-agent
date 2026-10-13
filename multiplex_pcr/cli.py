@@ -78,10 +78,10 @@ def main(argv=None):
         if not input_path.is_file():
             print(f"Error: Input file not found: {args.input}", file=sys.stderr)
             return 1
-        if not str(input_path).startswith(str(cwd)):
+        if not input_path.is_relative_to(cwd):
             print("Error: Input path must be within the working directory.", file=sys.stderr)
             return 1
-        if not str(output_path).startswith(str(cwd)):
+        if not output_path.is_relative_to(cwd):
             print("Error: Output path must be within the working directory.", file=sys.stderr)
             return 1
 
