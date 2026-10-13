@@ -6,6 +6,7 @@ import csv
 import json
 import sys
 from pathlib import Path
+from multiplex_pcr.primer_screen import screen_primers
 from agents.models import SystemTaskPayload
 from agents.supervisor import SystemSupervisor
 from agents.base import AuditLogger
@@ -38,12 +39,33 @@ def main(argv=None):
     # Verify Audit
     subparsers.add_parser("verify-audit", help="Verify HMAC audit trail integrity")
 
+    # Sequence-based screening (independent of generic metric audit)
+    p_screen = subparsers.add_parser("screen-primers", help="Heuristic primer-dimer screen from CSV")
+    p_screen.add_argument("-i", "--input", required=True, help="CSV with name,sequence columns")
+    p_screen.add_argument("-o", "--output", help="Optional JSON output path")
+
     # Serve
     p_serve = subparsers.add_parser("serve", help="Launch FastAPI REST server")
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=8000)
 
     args = parser.parse_args(argv)
+
+    if args.command == "screen-primers":
+        try:
+            with open(args.input, encoding="utf-8-sig", newline="") as stream:
+                primers = list(csv.DictReader(stream))
+            result = screen_primers(primers)
+            output = json.dumps(result, indent=2, ensure_ascii=False)
+            if args.output:
+                Path(args.output).write_text(output + "\n", encoding="utf-8")
+                print(f"Screened {len(result['primers'])} primers -> {args.output}")
+            else:
+                print(output)
+            return 0
+        except (OSError, ValueError, csv.Error) as exc:
+            print(f"Primer screen failed: {exc}", file=sys.stderr)
+            return 1
 
     if args.command == "audit":
         payload = SystemTaskPayload(
@@ -89,10 +111,10 @@ def main(argv=None):
         if not input_path.is_file():
             print(f"Error: Input file not found: {args.input}", file=sys.stderr)
             return 1
-        if not str(input_path).startswith(str(cwd)):
+        if not input_path.is_relative_to(cwd):
             print("Error: Input path must be within the working directory.", file=sys.stderr)
             return 1
-        if not str(output_path).startswith(str(cwd)):
+        if not output_path.is_relative_to(cwd):
             print("Error: Output path must be within the working directory.", file=sys.stderr)
             return 1
 
