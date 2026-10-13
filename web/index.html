@@ -1,236 +1,298 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pcr Multiplex Primer Dimer Engine — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Multiplex PCR | Primer Complementarity Screen</title>
+  <style>
+    :root { font-family: system-ui,-apple-system,Segoe UI,sans-serif; color:#172b3e; background:#f4f7fa; }
+    * { box-sizing:border-box }
+    body { margin:0; line-height:1.5 }
+    main { max-width:1160px; margin:0 auto; padding:28px 20px 64px }
+    header { border-bottom:1px solid #d7e0e8; padding-bottom:20px; margin-bottom:24px }
+    h1 { font-size:clamp(1.5rem,3vw,2.2rem); margin:0 0 6px; letter-spacing:-.02em }
+    h2 { font-size:1.13rem; margin:0 0 12px }
+    p { margin:.45rem 0; color:#455b70 }
+    .eyebrow { text-transform:uppercase; color:#306b8d; font-size:.76rem; letter-spacing:.09em; font-weight:700 }
+    .layout { display:grid; grid-template-columns:minmax(280px,380px) minmax(0,1fr); gap:20px; align-items:start }
+    .panel { background:white; padding:21px; border:1px solid #d7e0e8; border-radius:12px; box-shadow:0 4px 18px #172b3e09 }
+    label { font-weight:650; display:block; margin:12px 0 7px }
+    textarea { width:100%; min-height:260px; padding:12px; resize:vertical; font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; border:1px solid #abbac6; border-radius:7px; background:#fcfdff; color:#172b3e }
+    input[type=file] { max-width:100%; font-size:.87rem }
+    button { border:0; border-radius:7px; background:#17658d; color:white; font-weight:650; font-size:.95rem; padding:10px 16px; cursor:pointer }
+    button:hover { background:#124e70 }
+    button:disabled { background:#a4b4bf; cursor:not-allowed }
+    .secondary { background:#e7f0f5; color:#174e70 }
+    .secondary:hover { background:#d7e9f3 }
+    button:focus-visible,input:focus-visible,textarea:focus-visible { outline:3px solid #d79028; outline-offset:2px }
+    .actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:17px }
+    .hint { color:#64798c; font-size:.84rem }
+    .notice { margin-top:16px; padding:12px 14px; background:#f1f5f8; border-left:3px solid #5d829d; font-size:.84rem }
+    .error { color:#9b2424; background:#fdf0ef; border:1px solid #efc5c3; border-radius:6px; padding:9px 11px; margin-top:12px }
+    .stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin-bottom:17px }
+    .stat { border:1px solid #dce5ec; border-radius:8px; padding:10px; background:#f8fafc }
+    .number { font-size:1.5rem; line-height:1.3; font-weight:750 }
+    .stat small { color:#566e82 }
+    .table-scroll { overflow-x:auto; max-width:100%; margin:10px 0 18px; border:1px solid #e2e8ee; border-radius:7px }
+    table { border-collapse:collapse; width:100%; font-size:.84rem }
+    th,td { padding:7px 9px; border-bottom:1px solid #e3ebf1; text-align:left; white-space:nowrap }
+    th { background:#f1f5f8; font-weight:700 }
+    caption { text-align:left; font-weight:650; padding:9px; color:#34536a }
+    .matrix td { text-align:center; font-variant-numeric:tabular-nums }
+    .risk-high { background:#fce5e2; color:#962b21 }
+    .risk-moderate { background:#fff0ce; color:#784b00 }
+    .risk-low { background:#e9f3ed; color:#205c36 }
+    .legend { display:flex; gap:12px; flex-wrap:wrap; font-size:.81rem; margin:12px 0 }
+    .legend span { border-radius:4px; padding:2px 7px }
+    .empty { padding:35px 10px; text-align:center; color:#6b7f90 }
+    .section-space { margin-top:18px }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+    @media(max-width:780px) { main { padding:18px 12px 44px } .layout { grid-template-columns:1fr } .panel { padding:15px } .stats { grid-template-columns:repeat(3,1fr) } }
+  </style>
 </head>
 <body>
+<main>
+  <header>
+    <div class="eyebrow">DNA sequence analysis • runs locally in your browser</div>
+    <h1>Multiplex PCR primer complementarity</h1>
+    <p>Screen self- and cross-dimer candidates across a primer panel. Results are heuristic, not predicted thermodynamic stability or experimental performance.</p>
+  </header>
+  <div class="layout">
+    <section class="panel" aria-labelledby="input-title">
+      <h2 id="input-title">Primer panel</h2>
+      <p class="hint">One primer per line: <strong>name,sequence</strong>. Optional header. Unambiguous DNA (A/C/G/T), 4–80 nt, maximum 100 primers.</p>
+      <label for="primer-input">Primer names and 5′→3′ sequences</label>
+      <textarea id="primer-input" spellcheck="false" autocapitalize="off">name,sequence
+Forward_1,ACGTTGACCTAGGTACGTAA
+Reverse_1,TTACGTACCTAGGTCAACGT
+Forward_2,CCTGATCGTACGATGCTTAA
+Reverse_2,GGTCAACTGGAACCTGATCG</textarea>
+      <label for="csv-file">Or import a CSV file</label>
+      <input id="csv-file" type="file" accept=".csv,text/csv,text/plain">
+      <p class="hint">The uploaded file is read only on this device; it is not submitted to a server.</p>
+      <div class="actions">
+        <button id="analyze" type="button">Screen primers</button>
+        <button id="export" type="button" class="secondary" disabled>Export pairwise CSV</button>
+      </div>
+      <p id="message" aria-live="polite" role="status"></p>
+      <div class="notice">
+        <strong>Interpretation:</strong> A contiguous complementary stretch is counted across antiparallel ungapped alignments. The 3′ score is the longest such stretch touching either primer’s 3′ terminus. Moderate: 3′ ≥4 nt or longest ≥7 nt. High: 3′ ≥5 nt or longest ≥9 nt. These are screening thresholds, not empirically calibrated probabilities.
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="results-title">
+      <h2 id="results-title">Pairwise screening results</h2>
+      <div class="stats">
+        <div class="stat"><div class="number" id="primer-count">—</div><small>Primers</small></div>
+        <div class="stat"><div class="number" id="pair-count">—</div><small>Pairs incl. self</small></div>
+        <div class="stat"><div class="number" id="flag-count">—</div><small>Moderate/high</small></div>
+      </div>
+      <div id="results" class="empty">Enter a panel and select “Screen primers” to calculate the complementarity matrix.</div>
+    </section>
+  </div>
+</main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const complement = {A:"T",T:"A",C:"G",G:"C"};
+let lastResults = null;
 
-    <div class="header">
-        <div class="header-title">
-            <h1>Pcr Multiplex Primer Dimer Engine</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
-        </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
-    </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Pcr Multiplex Primer Dimer Engine Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "pcr-multiplex-primer-dimer-engine",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+function parseCsv(text) {
+  const rows = [];
+  let row = [], cell = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cell += '"'; i++; }
+        else quoted = false;
+      } else cell += c;
+    } else if (c === '"') {
+      if (cell.trim()) throw Error("Invalid quoted CSV field.");
+      quoted = true;
+    } else if (c === ",") {
+      row.push(cell.trim()); cell = "";
+    } else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell.trim()); cell = "";
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+    } else cell += c;
+  }
+  if (quoted) throw Error("Unterminated CSV quotation.");
+  row.push(cell.trim());
+  if (row.some(Boolean)) rows.push(row);
+  if (rows.length && rows[0][0].toLowerCase() === "name" && rows[0][1]?.toLowerCase() === "sequence") rows.shift();
+  if (rows.length < 1 || rows.length > 100) throw Error("Supply 1–100 primer rows.");
+  const seen = new Set();
+  return rows.map((cols, index) => {
+    if (cols.length !== 2) throw Error(`Row ${index + 1}: expected name,sequence.`);
+    const [name, sequenceRaw] = cols;
+    const sequence = sequenceRaw.toUpperCase();
+    if (!name || name.length > 80) throw Error(`Row ${index + 1}: name length must be 1–80 characters.`);
+    if (seen.has(name.toLowerCase())) throw Error(`Duplicate primer name: ${name}`);
+    seen.add(name.toLowerCase());
+    if (!/^[ACGT]{4,80}$/.test(sequence)) throw Error(`Row ${index + 1}: sequence must contain 4–80 A/C/G/T bases.`);
+    return {name, sequence};
+  });
+}
+function reverseComplement(sequence) {
+  return [...sequence].reverse().map(base => complement[base]).join("");
+}
+function compare(a, b) {
+  const rc = reverseComplement(b);
+  let longest = 0, terminal = 0;
+  for (let offset = 1 - b.length; offset < a.length; offset++) {
+    const start = Math.max(0, offset), stop = Math.min(a.length, offset + b.length);
+    let run = 0, runStart = start;
+    for (let i = start; i < stop; i++) {
+      if (a[i] === rc[i - offset]) {
+        if (run === 0) runStart = i;
+        run++;
+        longest = Math.max(longest, run);
+        if (i === a.length - 1 || runStart === offset) terminal = Math.max(terminal, run);
+      } else run = 0;
+    }
+  }
+  const risk = terminal >= 5 || longest >= 9 ? "high" : terminal >= 4 || longest >= 7 ? "moderate" : "low";
+  return {longest, terminal, risk};
+}
+function makeCell(parent, tag, content, className) {
+  const el = document.createElement(tag);
+  el.textContent = content;
+  if (className) el.className = className;
+  parent.append(el);
+  return el;
+}
+function showResults(primers, pairs) {
+  const flagged = pairs.filter(pair => pair.risk !== "low").length;
+  $("primer-count").textContent = primers.length;
+  $("pair-count").textContent = pairs.length;
+  $("flag-count").textContent = flagged;
+  const target = $("results");
+  target.textContent = "";
+  target.className = "";
+  const description = document.createElement("p");
+  description.className = "hint";
+  description.textContent = "Matrix values: longest contiguous match / longest 3′-anchored match (nt). Select the export button for all pair scores.";
+  target.append(description);
+  const legend = document.createElement("div");
+  legend.className = "legend";
+  for (const risk of ["low", "moderate", "high"]) makeCell(legend, "span", risk, "risk-" + risk);
+  target.append(legend);
+  const lookup = new Map();
+  pairs.forEach(pair => {
+    lookup.set(pair.i + ":" + pair.j, pair);
+    lookup.set(pair.j + ":" + pair.i, pair);
+  });
+  const scroll = document.createElement("div");
+  scroll.className = "table-scroll";
+  const table = document.createElement("table");
+  table.className = "matrix";
+  const caption = document.createElement("caption");
+  caption.textContent = "Complementarity matrix";
+  table.append(caption);
+  const head = document.createElement("thead"), headRow = document.createElement("tr");
+  makeCell(headRow, "th", "Primer");
+  primers.forEach(p => makeCell(headRow, "th", p.name).scope = "col");
+  head.append(headRow); table.append(head);
+  const body = document.createElement("tbody");
+  primers.forEach((primer, i) => {
+    const tr = document.createElement("tr");
+    makeCell(tr, "th", primer.name).scope = "row";
+    primers.forEach((other, j) => {
+      const pair = lookup.get(i + ":" + j);
+      const td = makeCell(tr, "td", pair.longest + " / " + pair.terminal, "risk-" + pair.risk);
+      td.title = primer.name + " × " + other.name + ": " + pair.risk + " heuristic flag";
+    });
+    body.append(tr);
+  });
+  table.append(body); scroll.append(table); target.append(scroll);
+  const title = document.createElement("h2");
+  title.textContent = "Flagged primer pairs";
+  target.append(title);
+  const flaggedPairs = pairs.filter(pair => pair.risk !== "low")
+    .sort((a,b) => ({high:2,moderate:1}[b.risk] - {high:2,moderate:1}[a.risk]) || b.terminal-a.terminal || b.longest-a.longest);
+  if (!flaggedPairs.length) {
+    const note = document.createElement("p");
+    note.textContent = "No pairs meet these heuristic thresholds. This does not establish assay specificity or experimental safety.";
+    target.append(note);
+    return;
+  }
+  const flaggedScroll = document.createElement("div");
+  flaggedScroll.className = "table-scroll";
+  const detailTable = document.createElement("table");
+  const detailHead = document.createElement("tr");
+  for (const label of ["Primer A", "Primer B", "Longest (nt)", "3′ (nt)", "Flag"]) makeCell(detailHead, "th", label).scope = "col";
+  const detailThead = document.createElement("thead");
+  detailThead.append(detailHead); detailTable.append(detailThead);
+  const detailBody = document.createElement("tbody");
+  flaggedPairs.forEach(pair => {
+    const tr = document.createElement("tr");
+    for (const value of [pair.a,pair.b,pair.longest,pair.terminal,pair.risk]) makeCell(tr,"td",String(value));
+    tr.lastChild.className = "risk-" + pair.risk;
+    detailBody.append(tr);
+  });
+  detailTable.append(detailBody); flaggedScroll.append(detailTable); target.append(flaggedScroll);
+}
+function runScreen() {
+  $("message").textContent = "";
+  $("message").className = "";
+  $("export").disabled = true;
+  lastResults = null;
+  try {
+    const primers = parseCsv($("primer-input").value);
+    const pairs = [];
+    primers.forEach((a, i) => {
+      for (let j = i; j < primers.length; j++) {
+        pairs.push({i,j,a:a.name,b:primers[j].name,...compare(a.sequence,primers[j].sequence)});
+      }
+    });
+    lastResults = pairs;
+    showResults(primers,pairs);
+    $("export").disabled = false;
+    $("message").textContent = "Screen completed locally. No network request was made.";
+  } catch (error) {
+    $("results").className = "empty";
+    $("results").textContent = "No results. Correct the input and screen again.";
+    for (const id of ["primer-count","pair-count","flag-count"]) $(id).textContent = "—";
+    $("message").className = "error";
+    $("message").textContent = error.message;
+  }
+}
+function csvQuote(value) { return '"' + String(value).replaceAll('"','""') + '"'; }
+function exportCsv() {
+  if (!lastResults) return;
+  const lines = ["primer_a,primer_b,longest_run_nt,three_prime_run_nt,heuristic_risk"];
+  lastResults.forEach(p => lines.push([p.a,p.b,p.longest,p.terminal,p.risk].map(csvQuote).join(",")));
+  const blob = new Blob([lines.join("\r\n") + "\r\n"],{type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "primer-complementarity-screen.csv";
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$("analyze").addEventListener("click",runScreen);
+$("export").addEventListener("click",exportCsv);
+$("csv-file").addEventListener("change",async event => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (file.size > 256 * 1024) {
+    $("message").className = "error";
+    $("message").textContent = "CSV files must be 256 KiB or smaller.";
+    return;
+  }
+  try {
+    $("primer-input").value = await file.text();
+    $("message").className = "";
+    $("message").textContent = "CSV loaded. Select Screen primers to analyze.";
+    $("export").disabled = true;
+    lastResults = null;
+  } catch {
+    $("message").className = "error";
+    $("message").textContent = "Could not read the selected CSV file.";
+  }
+});
+</script>
 </body>
 </html>
