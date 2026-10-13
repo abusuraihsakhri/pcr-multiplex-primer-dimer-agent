@@ -25,9 +25,19 @@ class SystemSupervisor:
         PHIGuard.assert_no_phi(payload.task_id)
         PHIGuard.assert_no_phi(payload.target_identifier)
         PHIGuard.assert_no_phi(payload.status_descriptor)
-        for key, value in (payload.attributes or {}).items():
+        # Check nested values as well as top-level attributes.
+        def check_strings(value):
             if isinstance(value, str):
                 PHIGuard.assert_no_phi(value)
+            elif isinstance(value, dict):
+                for key, item in value.items():
+                    check_strings(str(key))
+                    check_strings(item)
+            elif isinstance(value, (list, tuple)):
+                for item in value:
+                    check_strings(item)
+
+        check_strings(payload.attributes)
 
         # Multi-worker evaluations
         all_alerts: List[AgentAlert] = []
